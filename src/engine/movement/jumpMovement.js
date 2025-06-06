@@ -3,12 +3,12 @@
  * Implements advanced jump mechanics with Death From Above attack integration
  */
 
-import { distanceBetweenHexes } from './mapUtils'
-import { rollDice } from '../../utils/diceRolls'
-import { ENHANCED_INFANTRY_TYPE } from '../units/enhancedInfantry'
+const { distanceBetweenHexes } = require('./mapUtils')
+const { rollDice } = require('../../utils/diceRolls')
+const { ENHANCED_INFANTRY_TYPE } = require('../units/enhancedInfantry')
 
 // Jump movement types
-export const JUMP_TYPE = {
+const JUMP_TYPE = {
 	STANDARD: 'STANDARD',   // Standard jump jet movement
 	IMPROVED: 'IMPROVED',   // Improved jump jets (greater distance)
 	ASSAULT: 'ASSAULT',     // Assault jump jets (heavier units)
@@ -17,7 +17,7 @@ export const JUMP_TYPE = {
 }
 
 // Jump attack types
-export const JUMP_ATTACK = {
+const JUMP_ATTACK = {
 	DEATH_FROM_ABOVE: 'DEATH_FROM_ABOVE',  // Classic BattleTech DFA attack
 	STRAFING_RUN: 'STRAFING_RUN',          // Move and attack multiple targets
 	JUMP_SNIPER: 'JUMP_SNIPER',            // Jump and fire with accuracy bonus
@@ -30,7 +30,7 @@ export const JUMP_ATTACK = {
  * @param {Object} gameState - Current game state
  * @return {Object} - Result with success boolean and details
  */
-export function canJump(unit, gameState) {
+function canJump(unit, gameState) {
 	// Check if unit has jump capability
 	if (unit.type === 'MECH') {
 		if (!unit.jumpMP || unit.jumpMP <= 0) {
@@ -100,7 +100,7 @@ export function canJump(unit, gameState) {
  * @param {Object} unit - The unit to check
  * @return {number} - Maximum jump distance in hexes
  */
-export function getMaxJumpDistance(unit) {
+function getMaxJumpDistance(unit) {
 	if (unit.type === 'MECH') {
 		return unit.jumpMP || 0
 	} else if (unit.type === 'VEHICLE' && unit.vehicleType === 'VTOL') {
@@ -125,7 +125,7 @@ export function getMaxJumpDistance(unit) {
  * @param {number} distance - Jump distance in hexes
  * @return {number} - Heat points generated
  */
-export function calculateJumpHeat(unit, distance) {
+function calculateJumpHeat(unit, distance) {
 	if (unit.type !== 'MECH') return 0
 	
 	// Basic heat generation: minimum 3 heat, +1 for each hex jumped
@@ -140,7 +140,7 @@ export function calculateJumpHeat(unit, distance) {
  * @param {Object} gameState - Current game state
  * @return {Object} - Validation result with success boolean and details
  */
-export function validateJumpPath(unit, startPosition, endPosition, gameState) {
+function validateJumpPath(unit, startPosition, endPosition, gameState) {
 	// Calculate distance
 	const distance = distanceBetweenHexes(startPosition, endPosition)
 	
@@ -213,7 +213,7 @@ export function validateJumpPath(unit, startPosition, endPosition, gameState) {
  * @param {string} jumpType - Type of jump movement
  * @return {Object} - Result of the jump movement
  */
-export function executeJumpMovement(unit, startPosition, endPosition, gameState, jumpType = JUMP_TYPE.STANDARD) {
+function executeJumpMovement(unit, startPosition, endPosition, gameState, jumpType = JUMP_TYPE.STANDARD) {
 	// First check if unit can jump
 	const canJumpResult = canJump(unit, gameState)
 	if (!canJumpResult.success) {
@@ -327,7 +327,7 @@ export function executeJumpMovement(unit, startPosition, endPosition, gameState,
  * @param {Object} gameState - Current game state
  * @return {Object} - Result indicating if DFA is possible
  */
-export function canPerformDFA(attacker, defender, gameState) {
+function canPerformDFA(attacker, defender, gameState) {
 	// First check if unit can jump
 	const canJumpResult = canJump(attacker, gameState)
 	if (!canJumpResult.success) {
@@ -377,7 +377,7 @@ export function canPerformDFA(attacker, defender, gameState) {
  * @param {Object} gameState - Current game state
  * @return {Object} - To-hit calculation details
  */
-export function calculateDFAToHit(attacker, defender, gameState) {
+function calculateDFAToHit(attacker, defender, gameState) {
 	// Base to-hit value
 	let baseToHit = 7
 	
@@ -463,7 +463,7 @@ export function calculateDFAToHit(attacker, defender, gameState) {
  * @param {Object} defender - The target unit
  * @return {Object} - Damage calculation details
  */
-export function calculateDFADamage(attacker) {
+function calculateDFADamage(attacker) {
 	let baseDamage = 0
 	
 	if (attacker.type === 'MECH') {
@@ -491,7 +491,7 @@ export function calculateDFADamage(attacker) {
  * @param {Object} gameState - Current game state
  * @return {Object} - Attack result details
  */
-export function executeDFAAttack(attacker, defender, gameState) {
+function executeDFAAttack(attacker, defender, gameState) {
 	// Check if DFA is possible
 	const canDFAResult = canPerformDFA(attacker, defender, gameState)
 	if (!canDFAResult.success) {
@@ -657,7 +657,7 @@ export function executeDFAAttack(attacker, defender, gameState) {
  * @param {Object} gameState - Current game state
  * @return {Object} - Result of the jump sniper maneuver
  */
-export function executeJumpSniper(unit, startPosition, endPosition, gameState) {
+function executeJumpSniper(unit, startPosition, endPosition, gameState) {
 	// Perform the jump movement
 	const jumpResult = executeJumpMovement(
 		unit, 
@@ -692,7 +692,7 @@ export function executeJumpSniper(unit, startPosition, endPosition, gameState) {
  * @param {Object} gameState - Current game state
  * @return {Object} - Result of the evasive jump maneuver
  */
-export function executeEvasiveJump(unit, startPosition, endPosition, gameState) {
+function executeEvasiveJump(unit, startPosition, endPosition, gameState) {
 	// Perform the jump movement
 	const jumpResult = executeJumpMovement(
 		unit, 
@@ -719,7 +719,7 @@ export function executeEvasiveJump(unit, startPosition, endPosition, gameState) 
 	return jumpResult
 }
 
-export default {
+module.exports = {
 	JUMP_TYPE,
 	JUMP_ATTACK,
 	canJump,

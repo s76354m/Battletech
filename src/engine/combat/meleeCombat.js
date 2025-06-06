@@ -3,11 +3,11 @@
  * Handles melee combat mechanics for BattleTech
  */
 
-import { calculateAttackModifiers } from '../combat/attackModifiers';
-import { rollDice } from '../utils/diceRolls';
-import { applyDamage } from '../combat/damageResolution';
-import { checkPilotingSkillRoll } from '../pilot/pilotingChecks';
-import { calculateHitLocation } from '../combat/hitLocation';
+const { calculateAttackModifiers } = require('../combat/attackModifiers');
+const { rollDice } = require('../utils/diceRolls');
+const { applyDamage } = require('../combat/damageResolution');
+const { checkPilotingSkillRoll } = require('../pilot/pilotingChecks');
+const { calculateHitLocation } = require('../combat/hitLocation');
 
 // Melee attack types
 const MELEE_TYPES = {
@@ -350,13 +350,13 @@ function getAdjacentTargets(mech, gameState) {
 	return adjacentTargets;
 }
 
-export {
-	MELEE_TYPES,
-	canPerformMeleeAttack,
-	calculateMeleeToHit,
-	calculateMeleeDamage,
-	calculateSelfDamage,
-	executeMeleeAttack,
-	getAvailableMeleeOptions,
-	getAdjacentTargets
-}; 
+module.exports = {
+        MELEE_TYPES,
+        canPerformMeleeAttack,
+        calculateMeleeToHit,
+        calculateMeleeDamage,
+        calculateSelfDamage,
+        executeMeleeAttack,
+        getAvailableMeleeOptions,
+        getAdjacentTargets
+};

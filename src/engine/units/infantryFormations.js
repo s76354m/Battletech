@@ -5,11 +5,11 @@
  * enhancing their battlefield effectiveness against various targets.
  */
 
-import { SQUAD_FORMATION } from './enhancedInfantry';
-import { TERRAIN_TYPE } from '../movement/terrainEffects';
+const { SQUAD_FORMATION } = require('./enhancedInfantry');
+const { TERRAIN_TYPE } = require('../movement/terrainEffects');
 
 // Formation bonuses for different terrain types
-export const FORMATION_TERRAIN_BONUSES = {
+const FORMATION_TERRAIN_BONUSES = {
   [SQUAD_FORMATION.DISPERSED]: {
     [TERRAIN_TYPE.WOODS]: { defense: 2, movement: 0 },
     [TERRAIN_TYPE.ROUGH]: { defense: 1, movement: 0 },
@@ -37,7 +37,7 @@ export const FORMATION_TERRAIN_BONUSES = {
 };
 
 // Tactical specializations for infantry
-export const INFANTRY_TACTICS = {
+const INFANTRY_TACTICS = {
   AMBUSH: 'AMBUSH',         // Bonus to first attack from hidden position
   GUERRILLA: 'GUERRILLA',   // Enhanced retreat and reposition capabilities
   ASSAULT: 'ASSAULT',       // Improved damage when charging into combat
@@ -53,7 +53,7 @@ export const INFANTRY_TACTICS = {
  * @param {string} terrainType - Type of terrain
  * @returns {Object} Applicable bonuses
  */
-export function calculateFormationTerrainBonus(infantry, terrainType) {
+function calculateFormationTerrainBonus(infantry, terrainType) {
   if (!infantry || !infantry.formation || !terrainType) {
     return { defense: 0, movement: 0, detection: 0 };
   }
@@ -70,7 +70,7 @@ export function calculateFormationTerrainBonus(infantry, terrainType) {
  * @param {string} tactic - Tactical specialization to apply
  * @returns {Object} Updated infantry unit
  */
-export function applyInfantryTactic(infantry, tactic) {
+function applyInfantryTactic(infantry, tactic) {
   if (!Object.values(INFANTRY_TACTICS).includes(tactic)) {
     return infantry;
   }
@@ -136,7 +136,7 @@ export function applyInfantryTactic(infantry, tactic) {
  * @param {Object} target - Target unit (optional)
  * @returns {string} Recommended formation
  */
-export function recommendFormation(infantry, terrainType, target = null) {
+function recommendFormation(infantry, terrainType, target = null) {
   // Default to dispersed if no specific recommendation
   let bestFormation = SQUAD_FORMATION.DISPERSED;
   
@@ -191,7 +191,7 @@ export function recommendFormation(infantry, terrainType, target = null) {
  * @param {boolean} isHidden - Whether unit is currently hidden
  * @returns {string} Recommended tactic
  */
-export function recommendTactic(infantry, terrainType, target = null, isHidden = false) {
+function recommendTactic(infantry, terrainType, target = null, isHidden = false) {
   // Default tactic
   let bestTactic = INFANTRY_TACTICS.DEFENSIVE;
   
@@ -235,7 +235,7 @@ export function recommendTactic(infantry, terrainType, target = null, isHidden =
  * @param {string} timeOfDay - Current time of day (DAY, DUSK, NIGHT)
  * @returns {number} Visibility modifier (negative is harder to detect)
  */
-export function calculateVisibilityModifier(infantry, terrainType, timeOfDay) {
+function calculateVisibilityModifier(infantry, terrainType, timeOfDay) {
   // Start with formation-specific terrain bonus
   const terrainBonus = calculateFormationTerrainBonus(infantry, terrainType);
   
@@ -277,7 +277,7 @@ export function calculateVisibilityModifier(infantry, terrainType, timeOfDay) {
  * @param {Object} weather - Current weather conditions
  * @returns {number} Effectiveness score (0-10)
  */
-export function calculateEffectivenessScore(infantry, terrainType, target = null, weather = { visibility: 'NORMAL' }) {
+function calculateEffectivenessScore(infantry, terrainType, target = null, weather = { visibility: 'NORMAL' }) {
   let score = 5; // Base score
   
   // Factor in terrain bonuses
@@ -348,4 +348,15 @@ export function calculateEffectivenessScore(infantry, terrainType, target = null
   
   // Clamp to 0-10 range
   return Math.max(0, Math.min(10, score));
-} 
+}
+
+module.exports = {
+  FORMATION_TERRAIN_BONUSES,
+  INFANTRY_TACTICS,
+  calculateFormationTerrainBonus,
+  applyInfantryTactic,
+  recommendFormation,
+  recommendTactic,
+  calculateVisibilityModifier,
+  calculateEffectivenessScore
+}
