@@ -1,0 +1,36 @@
+{
+  "name": "alpha-strike-ai",
+  "version": "0.1.0",
+  "description": "CLI-based AI Game Master for Battletech Alpha Strike tabletop game",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon -L src/index.js",
+    "dev2": "nodemon --exec \"node src/index.js\"",
+    "dev-win": "concurrently \"nodemon --watch src --ext js,json --no-stdin --exec echo Restarting...\" \"node src/index.js\"",
+    "test": "jest"
+  },
+  "keywords": [
+    "battletech",
+    "alpha strike",
+    "ai",
+    "game master",
+    "tabletop",
+    "cli"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "axios": "^1.4.0",
+    "chalk": "^4.1.2",
+    "console-table-printer": "^2.11.2",
+    "dotenv": "^16.3.1",
+    "inquirer": "^8.2.5"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.22"
+  }
+}
