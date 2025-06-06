@@ -744,14 +744,24 @@ function processAttack(gameState, attackerId, targetId, options = {}) {
   }
   
   // Check for ECM effects
-  const ecmModifier = applyAllSpecialAbilities(target, 'modifyTargetMovementModifier', [gameState]);
+  // Base modifier is 0 so abilities can increment it
+  const ecmModifier = applyAllSpecialAbilities(
+    target,
+    'modifyTargetMovementModifier',
+    [0, gameState]
+  );
   if (ecmModifier > 0) {
     logger.info(`Target ${targetId} has ECM protection: +${ecmModifier} to-hit modifier`);
   }
   targetNumber += ecmModifier;
   
   // Apply special ability modifiers to attack roll
-  const attackModifier = applyAllSpecialAbilities(attacker, 'modifyAttackRoll', [target, attackType]);
+  // Base modifier is 0 so abilities can adjust it
+  const attackModifier = applyAllSpecialAbilities(
+    attacker,
+    'modifyAttackRoll',
+    [0, target, attackType]
+  );
   if (attackModifier !== 0) {
     logger.info(`Unit ${attackerId} has ${attackModifier > 0 ? '+' + attackModifier : attackModifier} attack roll modifier from special abilities`);
   }
