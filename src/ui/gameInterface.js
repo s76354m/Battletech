@@ -524,8 +524,7 @@ function displayGameStatus(gameState) {
   
   console.log(chalk.cyan('└─────────────────────────────────────────────────────────────┘'));
   
-  // Display battlefield and units
-  displayBattlefield(gameState);
+  // Display units only - battlefield is displayed separately
   displayUnits(gameState);
 }
 
@@ -2796,7 +2795,7 @@ async function startGame() {
   
   let running = true;
   
-  // Show initial battlefield
+  // Show initial battlefield - only once at the start
   displayBattlefield(gameState);
   
   // Display welcome message and help
@@ -2804,7 +2803,8 @@ async function startGame() {
   
   while (running) {
     try {
-      // Display current game status
+      // Display current game status, but don't redisplay the battlefield each time
+      // The battlefield will be displayed after actions that change it
       displayGameStatus(gameState);
       
       // Command choices based on game state
