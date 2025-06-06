@@ -6,9 +6,14 @@
  * punches, and standard melee attacks.
  */
 
-const { hasSpecialAbility } = require('./specialAbilities');
-const { calculateDistance } = require('./movement');
-const { performSkillCheck } = require('./combat');
+const { hasSpecialAbility, calculateDistance } = require('./specialAbilities');
+
+// TODO: Define performSkillCheck function or import it from the correct module
+function performSkillCheck(unit, modifiers = 0) {
+  // Simple implementation: roll 2d6 and compare to unit's skill
+  const roll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
+  return roll >= (unit.skill + modifiers);
+}
 
 // Define melee attack types
 const MELEE_ATTACK_TYPES = {
