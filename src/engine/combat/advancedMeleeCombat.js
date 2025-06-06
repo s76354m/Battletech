@@ -3,13 +3,13 @@
  * Implements enhanced melee mechanics with environmental factors and critical effects
  */
 
-import { distanceBetweenHexes } from '../movement/mapUtils'
-import { rollDice } from '../../utils/diceRolls'
-import { MELEE_TYPE } from './meleeCombat'
-import { ENHANCED_INFANTRY_TYPE } from '../units/enhancedInfantry'
+const { distanceBetweenHexes } = require('../movement/mapUtils')
+const { rollDice } = require('../../utils/diceRolls')
+const { MELEE_TYPE } = require('./meleeCombat')
+const { ENHANCED_INFANTRY_TYPE } = require('../units/enhancedInfantry')
 
 // Extended melee types beyond the basic ones
-export const ADVANCED_MELEE_TYPE = {
+const ADVANCED_MELEE_TYPE = {
 	...MELEE_TYPE, // Include basic melee types
 	SHOULDER_CHECK: 'SHOULDER_CHECK',   // Slam with shoulder, chance to push
 	HEAD_BUTT: 'HEAD_BUTT',             // Attack with head, targets cockpit
@@ -21,7 +21,7 @@ export const ADVANCED_MELEE_TYPE = {
 }
 
 // Special melee effects
-export const MELEE_EFFECT = {
+const MELEE_EFFECT = {
 	KNOCKDOWN: 'KNOCKDOWN',             // Target knocked down
 	CRITICAL_HIT: 'CRITICAL_HIT',       // Caused a critical hit
 	PUSHED: 'PUSHED',                   // Target pushed to another hex
@@ -36,7 +36,7 @@ export const MELEE_EFFECT = {
 }
 
 // Terrain modifiers for melee combat
-export const TERRAIN_MELEE_MODIFIERS = {
+const TERRAIN_MELEE_MODIFIERS = {
 	CLEAR: 0,
 	ROUGH: 1,
 	WOODS: 1,
@@ -58,7 +58,7 @@ export const TERRAIN_MELEE_MODIFIERS = {
  * @param {Object} gameState - Current game state
  * @return {Object} - Result indicating if melee is possible
  */
-export function canPerformAdvancedMelee(attacker, defender, meleeType, gameState) {
+function canPerformAdvancedMelee(attacker, defender, meleeType, gameState) {
 	// First validate basic requirements
 	if (!attacker || !defender) {
 		return {
@@ -202,7 +202,7 @@ export function canPerformAdvancedMelee(attacker, defender, meleeType, gameState
  * @param {Object} gameState - Current game state
  * @return {Object} - To-hit calculation details
  */
-export function calculateAdvancedMeleeToHit(attacker, defender, meleeType, gameState) {
+function calculateAdvancedMeleeToHit(attacker, defender, meleeType, gameState) {
 	// Base to-hit value based on melee type
 	let baseToHit = 0
 	
@@ -359,7 +359,7 @@ export function calculateAdvancedMeleeToHit(attacker, defender, meleeType, gameS
  * @param {string} meleeType - Type of melee attack
  * @return {Object} - Damage calculation details
  */
-export function calculateAdvancedMeleeDamage(attacker, defender, meleeType) {
+function calculateAdvancedMeleeDamage(attacker, defender, meleeType) {
 	let baseDamage = 0
 	let locations = ['CENTER_TORSO'] // Default target location
 	let specialEffects = []
@@ -460,7 +460,7 @@ export function calculateAdvancedMeleeDamage(attacker, defender, meleeType) {
  * @param {Array} possibleLocations - Possible hit locations
  * @return {string} - Selected hit location
  */
-export function determineMeleeHitLocation(possibleLocations) {
+function determineMeleeHitLocation(possibleLocations) {
 	// If there's only one location, return it
 	if (possibleLocations.length === 1) {
 		return possibleLocations[0]
@@ -480,7 +480,7 @@ export function determineMeleeHitLocation(possibleLocations) {
  * @param {Object} gameState - Current game state
  * @return {Array} - Applied effects with details
  */
-export function applyMeleeSpecialEffects(attacker, defender, effects, hitLocation, gameState) {
+function applyMeleeSpecialEffects(attacker, defender, effects, hitLocation, gameState) {
 	const appliedEffects = []
 	
 	if (!effects || effects.length === 0) {
@@ -719,7 +719,7 @@ export function applyMeleeSpecialEffects(attacker, defender, effects, hitLocatio
  * @param {Object} gameState - Current game state
  * @return {Object} - Attack result details
  */
-export function executeAdvancedMeleeAttack(attacker, defender, meleeType, gameState) {
+function executeAdvancedMeleeAttack(attacker, defender, meleeType, gameState) {
 	// Special case for defensive stance - it's not an attack
 	if (meleeType === ADVANCED_MELEE_TYPE.DEFENSIVE_STANCE) {
 		attacker.status.defensiveStance = true
@@ -875,7 +875,7 @@ export function executeAdvancedMeleeAttack(attacker, defender, meleeType, gameSt
 	return result
 }
 
-export default {
+module.exports = {
 	ADVANCED_MELEE_TYPE,
 	MELEE_EFFECT,
 	TERRAIN_MELEE_MODIFIERS,

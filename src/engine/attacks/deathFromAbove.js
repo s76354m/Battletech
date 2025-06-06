@@ -5,13 +5,13 @@
  * where a jumping mech crashes down on an opponent for devastating effect.
  */
 
-import { MECH_LOCATION } from '../units/mechLocations';
-import { rollDice } from '../../utils/diceRolls';
-import { calculateLineOfSight } from '../combat/lineOfSight';
-import { TERRAIN_TYPE } from '../movement/terrainEffects';
+const { MECH_LOCATION } = require('../units/mechLocations');
+const { rollDice } = require('../../utils/diceRolls');
+const { calculateLineOfSight } = require('../combat/lineOfSight');
+const { TERRAIN_TYPE } = require('../movement/terrainEffects');
 
 // DFA attack result types
-export const DFA_RESULT = {
+const DFA_RESULT = {
 	SUCCESS: 'SUCCESS',
 	MISSED: 'MISSED',
 	ATTACKER_FELL: 'ATTACKER_FELL',
@@ -36,7 +36,7 @@ const DFA_MODIFIERS = {
  * @param {number} jumpDistance - Distance jumped in hexes
  * @returns {boolean} Whether the attack can be performed
  */
-export function canPerformDFA(attacker, target, jumpDistance) {
+function canPerformDFA(attacker, target, jumpDistance) {
 	// Basic requirements
 	if (!attacker || !target) {
 		return false;
@@ -102,7 +102,7 @@ function canLandOnHex(mech, hexPosition) {
  * @param {number} jumpDistance - Distance jumped in hexes
  * @returns {number} To-hit number (2-12 scale, lower is better)
  */
-export function calculateDFAToHit(attacker, target, terrain, weather, jumpDistance) {
+function calculateDFAToHit(attacker, target, terrain, weather, jumpDistance) {
 	// Base to-hit for DFA
 	let baseToHit = 9;
 	
@@ -165,7 +165,7 @@ export function calculateDFAToHit(attacker, target, terrain, weather, jumpDistan
  * @param {Object} target - The target mech
  * @returns {Object} Damage calculations for both attacker and target
  */
-export function calculateDFADamage(attacker, target) {
+function calculateDFADamage(attacker, target) {
 	// Base damage is based on attacker's tonnage
 	const baseDamage = Math.floor(attacker.tonnage / 10);
 	
@@ -208,7 +208,7 @@ export function calculateDFADamage(attacker, target) {
  * @param {number} jumpDistance - Distance jumped in hexes
  * @returns {Object} Attack result information
  */
-export function executeDFAAttack(attacker, target, terrain, weather, jumpDistance) {
+function executeDFAAttack(attacker, target, terrain, weather, jumpDistance) {
 	// Check if attack can be performed
 	if (!canPerformDFA(attacker, target, jumpDistance)) {
 		return {
@@ -380,7 +380,7 @@ function moveToAdjacentHex(attacker, target) {
  * @param {Object} terrain - Terrain information
  * @returns {boolean} Whether the position is valid
  */
-export function isValidDFALandingPosition(position, terrain) {
+function isValidDFALandingPosition(position, terrain) {
 	// Invalid terrain types for landing
 	const invalidTerrainTypes = [
 		TERRAIN_TYPE.WATER_DEEP,
@@ -402,7 +402,7 @@ export function isValidDFALandingPosition(position, terrain) {
  * @param {Object} target - The target mech
  * @returns {Object} Potential damage information
  */
-export function calculatePotentialDFADamage(attacker, target) {
+function calculatePotentialDFADamage(attacker, target) {
 	const { targetDamage, attackerDamage } = calculateDFADamage(attacker, target);
 	
 	return {
@@ -420,7 +420,7 @@ export function calculatePotentialDFADamage(attacker, target) {
  * @param {number} jumpRange - Maximum jump range in hexes
  * @returns {Array} List of valid DFA targets with their distances
  */
-export function getAvailableDFATargets(attacker, potentialTargets, jumpRange) {
+function getAvailableDFATargets(attacker, potentialTargets, jumpRange) {
 	if (!attacker.jumpCapable) {
 		return [];
 	}
@@ -450,8 +450,19 @@ export function getAvailableDFATargets(attacker, potentialTargets, jumpRange) {
  * @returns {number} Distance in hexes
  */
 function calculateDistance(unitA, unitB) {
-	return Math.sqrt(
-		Math.pow(unitA.position.x - unitB.position.x, 2) + 
-		Math.pow(unitA.position.y - unitB.position.y, 2)
-	);
-} 
+        return Math.sqrt(
+                Math.pow(unitA.position.x - unitB.position.x, 2) +
+                Math.pow(unitA.position.y - unitB.position.y, 2)
+        );
+}
+
+module.exports = {
+        DFA_RESULT,
+        canPerformDFA,
+        calculateDFAToHit,
+        calculateDFADamage,
+        executeDFAAttack,
+        isValidDFALandingPosition,
+        calculatePotentialDFADamage,
+        getAvailableDFATargets
+}

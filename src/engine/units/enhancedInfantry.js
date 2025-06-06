@@ -4,16 +4,16 @@
  * special equipment, and advanced tactics
  */
 
-import { calculateToHit, applyDamage, getUnitState } from './unitUtils'
-import { distanceBetweenHexes } from '../movement/mapUtils'
-import { rollDice } from '../../utils/diceRolls'
-import { INFANTRY_TYPE, INFANTRY_EQUIPMENT } from './infantry'
-import { TERRAIN_TYPE } from '../movement/terrainEffects'
-import { calculateLineOfSight } from '../combat/lineOfSight'
-import { MECH_LOCATION } from './mechLocations'
+const { calculateToHit, applyDamage, getUnitState } = require('./unitUtils')
+const { distanceBetweenHexes } = require('../movement/mapUtils')
+const { rollDice } = require('../../utils/diceRolls')
+const { INFANTRY_TYPE, INFANTRY_EQUIPMENT } = require('./infantry')
+const { TERRAIN_TYPE } = require('../movement/terrainEffects')
+const { calculateLineOfSight } = require('../combat/lineOfSight')
+const { MECH_LOCATION } = require('./mechLocations')
 
 // Enhanced infantry types beyond basic types
-export const ENHANCED_INFANTRY_TYPE = {
+const ENHANCED_INFANTRY_TYPE = {
   FOOT: 'FOOT',
   MOTORIZED: 'MOTORIZED',
   MECHANIZED: 'MECHANIZED',
@@ -24,7 +24,7 @@ export const ENHANCED_INFANTRY_TYPE = {
 }
 
 // Specialized infantry equipment
-export const INFANTRY_EQUIPMENT = {
+const INFANTRY_EQUIPMENT = {
   // Basic weapons (from existing code)
   STANDARD: { name: 'Standard Weapons', damageMultiplier: 1, range: 1 },
   LASER: { name: 'Laser Rifles', damageMultiplier: 1.2, range: 2 },
@@ -85,7 +85,7 @@ export const INFANTRY_EQUIPMENT = {
 }
 
 // Special abilities for infantry units
-export const INFANTRY_ABILITIES = {
+const INFANTRY_ABILITIES = {
   INFILTRATION: {
     name: 'Infiltration',
     description: 'Can deploy behind enemy lines',
@@ -119,7 +119,7 @@ export const INFANTRY_ABILITIES = {
 }
 
 // Anti-mech specialized equipment types
-export const ANTI_MECH_EQUIPMENT = {
+const ANTI_MECH_EQUIPMENT = {
   INFERNO_SRM: 'INFERNO_SRM',
   VIBRO_BLADE: 'VIBRO_BLADE',
   DEMO_CHARGE: 'DEMO_CHARGE',
@@ -129,7 +129,7 @@ export const ANTI_MECH_EQUIPMENT = {
 };
 
 // Anti-mech attack types
-export const ANTI_MECH_ATTACK = {
+const ANTI_MECH_ATTACK = {
   SWARM: 'SWARM',
   LEG_ATTACK: 'LEG_ATTACK',
   SUPPORT_WEAPON: 'SUPPORT_WEAPON',
@@ -138,7 +138,7 @@ export const ANTI_MECH_ATTACK = {
 };
 
 // Enhanced infantry squad formation types
-export const SQUAD_FORMATION = {
+const SQUAD_FORMATION = {
   DISPERSED: 'DISPERSED',     // Spread out for reduced damage from area attacks
   CONCENTRATED: 'CONCENTRATED', // Focused for increased damage output
   STEALTH: 'STEALTH',         // Reduced visibility for ambush opportunities
@@ -154,7 +154,7 @@ export const SQUAD_FORMATION = {
  * @param {Object} stats - Additional unit stats
  * @return {Object} - The created infantry platoon
  */
-export function createEnhancedInfantryPlatoon(type, strength, equipment = [], abilities = [], stats = {}) {
+function createEnhancedInfantryPlatoon(type, strength, equipment = [], abilities = [], stats = {}) {
   // Validate infantry type
   if (!Object.values(ENHANCED_INFANTRY_TYPE).includes(type)) {
     throw new Error(`Invalid infantry type: ${type}`)
@@ -241,7 +241,7 @@ export function createEnhancedInfantryPlatoon(type, strength, equipment = [], ab
  * @param {Object} infantry - The infantry unit
  * @return {number} - The base damage value
  */
-export function calculateEnhancedInfantryDamage(infantry) {
+function calculateEnhancedInfantryDamage(infantry) {
   // Base damage is proportional to strength
   let baseDamage = Math.max(1, Math.floor(infantry.strength / 5))
   
@@ -303,7 +303,7 @@ export function calculateEnhancedInfantryDamage(infantry) {
  * @param {Object} gameState - Current game state
  * @return {Object} - To-hit calculation details
  */
-export function calculateEnhancedInfantryToHit(attacker, defender, range, gameState) {
+function calculateEnhancedInfantryToHit(attacker, defender, range, gameState) {
   // Base to-hit number
   let baseToHit = 7
   
@@ -425,7 +425,7 @@ export function calculateEnhancedInfantryToHit(attacker, defender, range, gameSt
  * @param {Object} gameState - Current game state
  * @return {Object} - Attack result details
  */
-export function executeEnhancedInfantryAttack(attacker, defender, gameState) {
+function executeEnhancedInfantryAttack(attacker, defender, gameState) {
   // Calculate range between units
   const range = distanceBetweenHexes(attacker.position, defender.position)
   
@@ -610,7 +610,7 @@ function applyAntiMechEffects(infantry, mech, result) {
  * @param {Object} infantry - The infantry unit to entrench
  * @return {Object} - Result of the entrenchment action
  */
-export function entrenchInfantry(infantry) {
+function entrenchInfantry(infantry) {
   // Check if entrenchment is possible
   if (infantry.hasMoved || infantry.hasFired) {
     return {
@@ -653,7 +653,7 @@ export function entrenchInfantry(infantry) {
  * @param {Object} infantry - The infantry unit
  * @return {Object} - Result of abandoning entrenchment
  */
-export function abandonEntrenchment(infantry) {
+function abandonEntrenchment(infantry) {
   if (!infantry.status.entrenched) {
     return {
       success: false,
@@ -677,7 +677,7 @@ export function abandonEntrenchment(infantry) {
  * @param {Object} gameState - Current game state
  * @return {Object} - Result of the infiltration attempt
  */
-export function performInfiltration(infantry, position, gameState) {
+function performInfiltration(infantry, position, gameState) {
   // Check for infiltration ability
   const infiltrationAbility = infantry.abilities?.find(a => a.key === 'INFILTRATION')
   
@@ -734,7 +734,7 @@ export function performInfiltration(infantry, position, gameState) {
  * @param {Object} target - The target mech to repair
  * @return {Object} - Result of the repair attempt
  */
-export function performFieldRepairs(infantry, target) {
+function performFieldRepairs(infantry, target) {
   // Check for repair ability
   const repairAbility = infantry.abilities?.find(a => a.key === 'REPAIR')
   
@@ -833,7 +833,7 @@ export function performFieldRepairs(infantry, target) {
  * @param {string} attackType - Type of anti-mech attack
  * @returns {boolean} Whether the attack can be performed
  */
-export function canPerformAntiMechAttack(infantry, target, attackType) {
+function canPerformAntiMechAttack(infantry, target, attackType) {
   // Basic checks
   if (!infantry || !target || target.type !== 'MECH') {
     return false;
@@ -908,7 +908,7 @@ export function canPerformAntiMechAttack(infantry, target, attackType) {
  * @param {string} attackType - Type of anti-mech attack
  * @returns {number} To-hit number (2-12 scale, lower is better)
  */
-export function calculateAntiMechToHit(infantry, target, attackType) {
+function calculateAntiMechToHit(infantry, target, attackType) {
   // Base to-hit number (standard difficulty)
   let baseToHit = 8;
   
@@ -996,7 +996,7 @@ export function calculateAntiMechToHit(infantry, target, attackType) {
  * @param {string} attackType - Type of anti-mech attack
  * @returns {number} Damage amount
  */
-export function calculateAntiMechDamage(infantry, target, attackType) {
+function calculateAntiMechDamage(infantry, target, attackType) {
   // Base damage is dependent on troop count and attack type
   let baseDamage = 0;
   const troopRatio = infantry.troopCount / infantry.maxTroopCount;
@@ -1054,7 +1054,7 @@ export function calculateAntiMechDamage(infantry, target, attackType) {
  * @param {string} attackType - Type of anti-mech attack
  * @returns {Object} Attack result information
  */
-export function executeAntiMechAttack(infantry, target, attackType) {
+function executeAntiMechAttack(infantry, target, attackType) {
   // Check if attack can be performed
   if (!canPerformAntiMechAttack(infantry, target, attackType)) {
     return {
@@ -1319,7 +1319,7 @@ function areUnitsAdjacent(unitA, unitB) {
  * @param {number} quantity - Number of equipment to add
  * @returns {Object} Updated infantry object
  */
-export function addAntiMechEquipment(infantry, equipmentType, quantity = 1) {
+function addAntiMechEquipment(infantry, equipmentType, quantity = 1) {
   // Initialize equipment array if needed
   if (!infantry.antiMechEquipment) {
     infantry.antiMechEquipment = [];
@@ -1342,7 +1342,7 @@ export function addAntiMechEquipment(infantry, equipmentType, quantity = 1) {
  * @param {string} newFormation - New formation to adopt
  * @returns {Object} Updated infantry object
  */
-export function changeInfantryFormation(infantry, newFormation) {
+function changeInfantryFormation(infantry, newFormation) {
   // Validate formation
   if (!Object.values(SQUAD_FORMATION).includes(newFormation)) {
     return infantry;
@@ -1392,7 +1392,7 @@ export function changeInfantryFormation(infantry, newFormation) {
  * @param {Object} target - The target mech
  * @returns {Array} List of available attack options with their to-hit values
  */
-export function getAvailableAntiMechAttacks(infantry, target) {
+function getAvailableAntiMechAttacks(infantry, target) {
   if (!infantry || !target || target.type !== 'MECH') {
     return [];
   }
@@ -1421,7 +1421,7 @@ export function getAvailableAntiMechAttacks(infantry, target) {
  * @param {Object} infantry - The infantry platoon
  * @returns {Object} Updated infantry object
  */
-export function updateInfantryFatigue(infantry) {
+function updateInfantryFatigue(infantry) {
   // Reset turn flags
   infantry.hasMovedThisTurn = false;
   infantry.hasAttackedThisTurn = false;
@@ -1439,7 +1439,7 @@ export function updateInfantryFatigue(infantry) {
  * @param {Object} infantry - The infantry platoon
  * @returns {Object} Updated infantry object
  */
-export function detachFromSwarmAttack(infantry) {
+function detachFromSwarmAttack(infantry) {
   infantry.isSwarmingTarget = false;
   infantry.swarmingTargetId = null;
   infantry.fatigue = (infantry.fatigue || 0) + 2;
@@ -1447,7 +1447,7 @@ export function detachFromSwarmAttack(infantry) {
   return infantry;
 }
 
-export default {
+module.exports = {
   ENHANCED_INFANTRY_TYPE,
   INFANTRY_EQUIPMENT,
   INFANTRY_ABILITIES,
