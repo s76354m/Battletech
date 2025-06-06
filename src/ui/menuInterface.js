@@ -402,54 +402,68 @@ async function handleStartupMenu(gameState) {
  * @returns {Promise<Object>} Command object
  */
 async function handleAttackMenu(gameState) {
-  // Get list of player units that can attack
-  const playerUnits = Array.from(gameState.battlefield.units.values())
-    .filter(unit => unit.owner === 'player' && !unit.destroyed && !unit.status.shutdown);
-    
-  if (playerUnits.length === 0) {
-    console.log(chalk.yellow('No units available to attack with.'));
-    return { type: 'UNKNOWN' };
-  }
-  
-  // Get list of AI units that can be attacked
-  const aiUnits = Array.from(gameState.battlefield.units.values())
-    .filter(unit => unit.owner === 'ai' && !unit.destroyed);
-    
-  if (aiUnits.length === 0) {
-    console.log(chalk.yellow('No enemy units available to attack.'));
-    return { type: 'UNKNOWN' };
-  }
-  
-  const attackerChoices = playerUnits.map(unit => ({
-    name: `${unit.name} (${unit.id}) - ${unit.type}`,
-    value: unit.id
-  }));
-  
-  const targetChoices = aiUnits.map(unit => ({
-    name: `${unit.name} (${unit.id}) - ${unit.type}`,
-    value: unit.id
-  }));
-  
-  const { attackerId, targetId } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'attackerId',
-      message: 'Select unit to attack with:',
-      choices: attackerChoices
-    },
-    {
-      type: 'list',
-      name: 'targetId',
-      message: 'Select target:',
-      choices: targetChoices
+  try {
+    // Get list of player units that can attack
+    const playerUnits = Array.from(gameState.battlefield.units.values())
+      .filter(unit => {
+        return unit && 
+               unit.owner === 'player' && 
+               !unit.status?.destroyed && 
+               !unit.status?.shutdown;
+      });
+      
+    if (playerUnits.length === 0) {
+      console.log(chalk.yellow('No units available to attack with.'));
+      return { type: 'UNKNOWN' };
     }
-  ]);
-  
-  return {
-    type: 'ATTACK',
-    attacker: attackerId,
-    target: targetId
-  };
+    
+    // Get list of AI units that can be attacked
+    const aiUnits = Array.from(gameState.battlefield.units.values())
+      .filter(unit => {
+        return unit && 
+               unit.owner === 'ai' && 
+               !unit.status?.destroyed;
+      });
+      
+    if (aiUnits.length === 0) {
+      console.log(chalk.yellow('No enemy units available to attack.'));
+      return { type: 'UNKNOWN' };
+    }
+    
+    const attackerChoices = playerUnits.map(unit => ({
+      name: `${unit.name || 'Unknown'} (${unit.id}) - ${unit.type || 'Unknown'}`,
+      value: unit.id
+    }));
+    
+    const targetChoices = aiUnits.map(unit => ({
+      name: `${unit.name || 'Unknown'} (${unit.id}) - ${unit.type || 'Unknown'}`,
+      value: unit.id
+    }));
+    
+    const { attackerId, targetId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'attackerId',
+        message: 'Select unit to attack with:',
+        choices: attackerChoices
+      },
+      {
+        type: 'list',
+        name: 'targetId',
+        message: 'Select target:',
+        choices: targetChoices
+      }
+    ]);
+    
+    return {
+      type: 'ATTACK',
+      attacker: attackerId,
+      target: targetId
+    };
+  } catch (error) {
+    console.log(chalk.red(`Error in attack menu: ${error.message}`));
+    return { type: 'UNKNOWN' };
+  }
 }
 
 /**
@@ -458,67 +472,81 @@ async function handleAttackMenu(gameState) {
  * @returns {Promise<Object>} Command object
  */
 async function handleMeleeMenu(gameState) {
-  // Get list of player units that can attack
-  const playerUnits = Array.from(gameState.battlefield.units.values())
-    .filter(unit => unit.owner === 'player' && !unit.destroyed && !unit.status.shutdown);
-    
-  if (playerUnits.length === 0) {
-    console.log(chalk.yellow('No units available for melee combat.'));
-    return { type: 'UNKNOWN' };
-  }
-  
-  // Get list of AI units that can be attacked
-  const aiUnits = Array.from(gameState.battlefield.units.values())
-    .filter(unit => unit.owner === 'ai' && !unit.destroyed);
-    
-  if (aiUnits.length === 0) {
-    console.log(chalk.yellow('No enemy units available to attack.'));
-    return { type: 'UNKNOWN' };
-  }
-  
-  const attackerChoices = playerUnits.map(unit => ({
-    name: `${unit.name} (${unit.id}) - ${unit.type}`,
-    value: unit.id
-  }));
-  
-  const targetChoices = aiUnits.map(unit => ({
-    name: `${unit.name} (${unit.id}) - ${unit.type}`,
-    value: unit.id
-  }));
-  
-  const { attackerId, targetId, attackType } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'attackerId',
-      message: 'Select unit for melee:',
-      choices: attackerChoices
-    },
-    {
-      type: 'list',
-      name: 'targetId',
-      message: 'Select target:',
-      choices: targetChoices
-    },
-    {
-      type: 'list',
-      name: 'attackType',
-      message: 'Select melee attack type:',
-      choices: [
-        { name: 'Standard Melee Attack', value: 'STANDARD' },
-        { name: 'Charge Attack', value: 'CHARGE' },
-        { name: 'Punch Attack (Mechs only)', value: 'PUNCH' },
-        { name: 'Kick Attack (Mechs only)', value: 'KICK' },
-        { name: 'Physical Weapon Attack', value: 'WEAPON' }
-      ]
+  try {
+    // Get list of player units that can attack
+    const playerUnits = Array.from(gameState.battlefield.units.values())
+      .filter(unit => {
+        return unit && 
+               unit.owner === 'player' && 
+               !unit.status?.destroyed && 
+               !unit.status?.shutdown;
+      });
+      
+    if (playerUnits.length === 0) {
+      console.log(chalk.yellow('No units available for melee combat.'));
+      return { type: 'UNKNOWN' };
     }
-  ]);
-  
-  return {
-    type: 'MELEE',
-    attackerId,
-    targetId,
-    attackType
-  };
+    
+    // Get list of AI units that can be attacked
+    const aiUnits = Array.from(gameState.battlefield.units.values())
+      .filter(unit => {
+        return unit && 
+               unit.owner === 'ai' && 
+               !unit.status?.destroyed;
+      });
+      
+    if (aiUnits.length === 0) {
+      console.log(chalk.yellow('No enemy units available to attack.'));
+      return { type: 'UNKNOWN' };
+    }
+    
+    const attackerChoices = playerUnits.map(unit => ({
+      name: `${unit.name || 'Unknown'} (${unit.id}) - ${unit.type || 'Unknown'}`,
+      value: unit.id
+    }));
+    
+    const targetChoices = aiUnits.map(unit => ({
+      name: `${unit.name || 'Unknown'} (${unit.id}) - ${unit.type || 'Unknown'}`,
+      value: unit.id
+    }));
+    
+    const { attackerId, targetId, attackType } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'attackerId',
+        message: 'Select unit for melee:',
+        choices: attackerChoices
+      },
+      {
+        type: 'list',
+        name: 'targetId',
+        message: 'Select target:',
+        choices: targetChoices
+      },
+      {
+        type: 'list',
+        name: 'attackType',
+        message: 'Select melee attack type:',
+        choices: [
+          { name: 'Standard Melee Attack', value: 'STANDARD' },
+          { name: 'Charge Attack', value: 'CHARGE' },
+          { name: 'Punch Attack (Mechs only)', value: 'PUNCH' },
+          { name: 'Kick Attack (Mechs only)', value: 'KICK' },
+          { name: 'Physical Weapon Attack', value: 'WEAPON' }
+        ]
+      }
+    ]);
+    
+    return {
+      type: 'MELEE',
+      attackerId,
+      targetId,
+      attackType
+    };
+  } catch (error) {
+    console.log(chalk.red(`Error in melee menu: ${error.message}`));
+    return { type: 'UNKNOWN' };
+  }
 }
 
 /**
@@ -613,64 +641,84 @@ async function handleRangeMenu(gameState) {
  * @returns {Promise<Object>} Command object
  */
 async function handleJumpUnitMenu(gameState) {
-  // Get list of player units that can jump
-  const jumpCapableUnits = Array.from(gameState.battlefield.units.values())
-    .filter(unit => {
-      // Check if unit belongs to player, is not destroyed, and has jump capability
-      if (unit.owner !== 'player' || unit.destroyed || unit.status.shutdown) {
-        return false;
-      }
+  try {
+    // Get list of player units that can jump
+    const jumpCapableUnits = Array.from(gameState.battlefield.units.values())
+      .filter(unit => {
+        // Check if unit belongs to player, is not destroyed, and has jump capability
+        if (!unit || unit.owner !== 'player' || 
+            (unit.status?.destroyed) || 
+            (unit.status?.shutdown)) {
+          return false;
+        }
+        
+        // Check for jump movement points or jump special ability
+        const hasJumpMP = unit.stats?.movement?.jump && unit.stats.movement.jump > 0;
+        const hasJumpAbility = unit.stats?.specialAbilities && 
+                              Array.isArray(unit.stats.specialAbilities) && 
+                              unit.stats.specialAbilities.includes('JMPS');
+        
+        return hasJumpMP || hasJumpAbility;
+      });
       
-      // Check for jump movement points or jump special ability
-      const hasJumpMP = unit.stats.movement.jump && unit.stats.movement.jump > 0;
-      const hasJumpAbility = unit.specialAbilities && unit.specialAbilities.includes('JMPS');
-      
-      return hasJumpMP || hasJumpAbility;
-    });
-    
-  if (jumpCapableUnits.length === 0) {
-    console.log(chalk.yellow('No units available with jump capability.'));
-    return { type: 'UNKNOWN' };
-  }
-  
-  const unitChoices = jumpCapableUnits.map(unit => ({
-    name: `${unit.name} (${unit.id}) - Jump MP: ${unit.stats.movement.jump || 0}`,
-    value: unit.id
-  }));
-  
-  // Import the jumpVisualizer here to avoid circular dependencies
-  const jumpVisualizer = require('./jumpVisualizer');
-  
-  const { unitId } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'unitId',
-      message: 'Select unit to jump:',
-      choices: unitChoices
+    if (jumpCapableUnits.length === 0) {
+      console.log(chalk.yellow('No units available with jump capability.'));
+      return { type: 'UNKNOWN' };
     }
-  ]);
-  
-  // Use the jump visualizer to handle destination selection
-  let destination, facing;
-  
-  await new Promise(resolve => {
-    jumpVisualizer.promptJumpDestination(gameState, unitId, inquirer, (dest, face) => {
-      destination = dest;
-      facing = face;
-      resolve();
-    });
-  });
-  
-  if (!destination) {
+    
+    const unitChoices = jumpCapableUnits.map(unit => ({
+      name: `${unit.name} (${unit.id}) - Jump MP: ${unit.stats?.movement?.jump || 0}`,
+      value: unit.id
+    }));
+    
+    // Import the jumpVisualizer here to avoid circular dependencies
+    let jumpVisualizer;
+    try {
+      jumpVisualizer = require('./jumpVisualizer');
+    } catch (error) {
+      console.log(chalk.red(`Error loading jump visualizer: ${error.message}`));
+      return { type: 'UNKNOWN' };
+    }
+    
+    const { unitId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'unitId',
+        message: 'Select unit to jump:',
+        choices: unitChoices
+      }
+    ]);
+    
+    // Use the jump visualizer to handle destination selection
+    let destination, facing;
+    
+    try {
+      await new Promise(resolve => {
+        jumpVisualizer.promptJumpDestination(gameState, unitId, inquirer, (dest, face) => {
+          destination = dest;
+          facing = face;
+          resolve();
+        });
+      });
+    } catch (error) {
+      console.log(chalk.red(`Error during jump destination selection: ${error.message}`));
+      return { type: 'UNKNOWN' };
+    }
+    
+    if (!destination) {
+      return { type: 'UNKNOWN' };
+    }
+    
+    return {
+      type: 'JUMP',
+      unitId,
+      position: destination,
+      facing
+    };
+  } catch (error) {
+    console.log(chalk.red(`Error in jump menu: ${error.message}`));
     return { type: 'UNKNOWN' };
   }
-  
-  return {
-    type: 'JUMP',
-    unitId,
-    position: destination,
-    facing
-  };
 }
 
 /**
@@ -679,91 +727,113 @@ async function handleJumpUnitMenu(gameState) {
  * @returns {Promise<Object>} Command object
  */
 async function handleDFAMenu(gameState) {
-  // Import the jumpMovement module
-  const jumpMovement = require('../engine/jumpMovement');
-  
-  // Get list of player units that have jumped this turn
-  const jumpedUnits = Array.from(gameState.battlefield.units.values())
-    .filter(unit => {
-      return unit.owner === 'player' && 
-             !unit.destroyed && 
-             !unit.status.shutdown &&
-             unit.status.moveType === 'jump';
-    });
+  try {
+    // Import the jumpMovement module
+    let jumpMovement;
+    try {
+      jumpMovement = require('../engine/jumpMovement');
+    } catch (error) {
+      console.log(chalk.red(`Error loading jump movement module: ${error.message}`));
+      return { type: 'UNKNOWN' };
+    }
     
-  if (jumpedUnits.length === 0) {
-    console.log(chalk.yellow('No units available that have jumped this turn. Jump a unit first to perform DFA.'));
-    return { type: 'UNKNOWN' };
-  }
-  
-  const attackerChoices = jumpedUnits.map(unit => ({
-    name: `${unit.name} (${unit.id}) - ${unit.type}`,
-    value: unit.id
-  }));
-  
-  const { attackerId } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'attackerId',
-      message: 'Select unit to perform Death From Above:',
-      choices: attackerChoices
+    // Get list of player units that have jumped this turn
+    const jumpedUnits = Array.from(gameState.battlefield.units.values())
+      .filter(unit => {
+        return unit && unit.owner === 'player' && 
+               !unit.status?.destroyed && 
+               !unit.status?.shutdown &&
+               unit.status?.moveType === 'jump';
+      });
+      
+    if (jumpedUnits.length === 0) {
+      console.log(chalk.yellow('No units available that have jumped this turn. Jump a unit first to perform DFA.'));
+      return { type: 'UNKNOWN' };
     }
-  ]);
-  
-  // Get possible targets (adjacent units)
-  const attacker = gameState.battlefield.units.get(attackerId);
-  const possibleTargets = Array.from(gameState.battlefield.units.values())
-    .filter(unit => {
-      if (unit.owner === 'player' || unit.destroyed) {
-        return false;
+    
+    const attackerChoices = jumpedUnits.map(unit => ({
+      name: `${unit.name} (${unit.id}) - ${unit.type}`,
+      value: unit.id
+    }));
+    
+    const { attackerId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'attackerId',
+        message: 'Select unit to perform Death From Above:',
+        choices: attackerChoices
       }
-      
-      // Calculate distance
-      const distance = Math.sqrt(
-        Math.pow(unit.position.x - attacker.position.x, 2) + 
-        Math.pow(unit.position.y - attacker.position.y, 2)
-      );
-      
-      // Target must be adjacent
-      return distance <= 1;
-    });
-  
-  if (possibleTargets.length === 0) {
-    console.log(chalk.yellow('No valid targets in adjacent hexes for Death From Above attack.'));
-    return { type: 'UNKNOWN' };
-  }
-  
-  const targetChoices = possibleTargets.map(unit => ({
-    name: `${unit.name} (${unit.id}) - ${unit.type}`,
-    value: unit.id
-  }));
-  
-  const { targetId } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'targetId',
-      message: 'Select target for Death From Above:',
-      choices: targetChoices
+    ]);
+    
+    // Get possible targets (adjacent units)
+    const attacker = gameState.battlefield.units.get(attackerId);
+    if (!attacker || !attacker.position) {
+      console.log(chalk.red('Invalid attacker or attacker position'));
+      return { type: 'UNKNOWN' };
     }
-  ]);
-  
-  // Validate DFA possibility
-  const dfaCheck = jumpMovement.canPerformDFA(gameState, attackerId, targetId);
-  
-  if (!dfaCheck.valid) {
-    console.log(chalk.red(`Cannot perform Death From Above: ${dfaCheck.reason}`));
+    
+    const possibleTargets = Array.from(gameState.battlefield.units.values())
+      .filter(unit => {
+        if (!unit || !unit.position || unit.owner === 'player' || unit.status?.destroyed) {
+          return false;
+        }
+        
+        // Calculate distance
+        const distance = Math.sqrt(
+          Math.pow(unit.position.x - attacker.position.x, 2) + 
+          Math.pow(unit.position.y - attacker.position.y, 2)
+        );
+        
+        // Target must be adjacent
+        return distance <= 1;
+      });
+    
+    if (possibleTargets.length === 0) {
+      console.log(chalk.yellow('No valid targets in adjacent hexes for Death From Above attack.'));
+      return { type: 'UNKNOWN' };
+    }
+    
+    const targetChoices = possibleTargets.map(unit => ({
+      name: `${unit.name} (${unit.id}) - ${unit.type}`,
+      value: unit.id
+    }));
+    
+    const { targetId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'targetId',
+        message: 'Select target for Death From Above:',
+        choices: targetChoices
+      }
+    ]);
+    
+    // Validate DFA possibility
+    try {
+      const dfaCheck = jumpMovement.canPerformDFA(gameState, attackerId, targetId);
+      
+      if (!dfaCheck.valid) {
+        console.log(chalk.red(`Cannot perform Death From Above: ${dfaCheck.reason}`));
+        return { type: 'UNKNOWN' };
+      }
+    } catch (error) {
+      console.log(chalk.red(`Error validating DFA attack: ${error.message}`));
+      return { type: 'UNKNOWN' };
+    }
+    
+    return {
+      type: 'DFA',
+      attackerId,
+      targetId
+    };
+  } catch (error) {
+    console.log(chalk.red(`Error in DFA menu: ${error.message}`));
     return { type: 'UNKNOWN' };
   }
-  
-  return {
-    type: 'DFA',
-    attackerId,
-    targetId
-  };
 }
 
+// Add module exports at the end
 module.exports = {
   getMenuCommand,
   handleJumpUnitMenu,
   handleDFAMenu
-}; 
+};
