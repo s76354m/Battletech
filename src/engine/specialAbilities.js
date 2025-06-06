@@ -688,7 +688,14 @@ function applySpecialAbility(unit, abilityCode, functionName, params = []) {
  * @returns {boolean} Whether the unit has the ability
  */
 function hasSpecialAbility(unit, abilityCode) {
-  return unit.stats.specialAbilities && unit.stats.specialAbilities.includes(abilityCode);
+  // First check if unit is defined
+  if (!unit) return false;
+  
+  // Check if unit has stats property
+  if (!unit.stats) return false;
+  
+  // Check if unit has specialAbilities property and if it includes the ability
+  return Array.isArray(unit.stats.specialAbilities) && unit.stats.specialAbilities.includes(abilityCode);
 }
 
 /**

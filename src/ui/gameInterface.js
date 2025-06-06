@@ -1163,36 +1163,46 @@ async function handleInitiativeRoll(command) {
 
 /**
  * Helper function to select a player unit using a menu
- * @returns {Promise<string>} Selected unit ID
+ * @returns {Promise<Object>} Selected player unit object
  */
 async function selectPlayerUnit() {
-  // Get all non-destroyed player units
-  const playerUnits = gameState.players.get('player').units
-    .map(id => ({ id, unit: gameState.battlefield.units.get(id) }))
-    .filter(item => !item.unit.status.effects.includes('DESTROYED'));
-  
-  if (playerUnits.length === 0) {
-    console.log(chalk.yellow('No valid player units available.'));
+  try {
+    // Get all non-destroyed player units
+    const playerUnits = gameState.players.get('player').units
+      .map(id => {
+        const unit = gameState.battlefield.units.get(id);
+        if (!unit) return null;
+        return { id, unit };
+      })
+      .filter(item => item && item.unit && !item.unit.status?.effects?.includes('DESTROYED'));
+    
+    if (playerUnits.length === 0) {
+      console.log(chalk.yellow('No valid player units available.'));
+      return null;
+    }
+    
+    // Create formatted choices
+    const choices = playerUnits.map(item => ({
+      name: `${item.unit.name} at (${item.unit.position.x},${item.unit.position.y})`,
+      value: item.unit
+    }));
+    
+    // Prompt user to select
+    const { selectedUnit } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedUnit',
+        message: 'Select your unit:',
+        choices
+      }
+    ]);
+    
+    // Return the full unit object instead of just the ID
+    return selectedUnit;
+  } catch (error) {
+    console.log(chalk.red(`Error selecting unit: ${error.message}`));
     return null;
   }
-  
-  // Create formatted choices
-  const choices = playerUnits.map(item => ({
-    name: `${item.unit.name} at (${item.unit.position.x},${item.unit.position.y})`,
-    value: item.id
-  }));
-  
-  // Prompt user to select
-  const { selectedUnit } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'selectedUnit',
-      message: 'Select your unit:',
-      choices
-    }
-  ]);
-  
-  return selectedUnit;
 }
 
 /**
@@ -2628,147 +2638,171 @@ async function setupHeatTestScenario(gameState) {
  * Handle attack menu to select a unit and target for attack
  */
 async function handleAttackMenu() {
-  // Select attacking unit
-  const attacker = await selectPlayerUnit();
-  if (!attacker) return false;
-  
-  // Get all valid targets
-  const possibleTargets = Array.from(gameState.battlefield.units.values())
-    .filter(u => u.owner !== 'player' && !u.status.effects.includes('DESTROYED'));
-  
-  if (possibleTargets.length === 0) {
-    console.log(chalk.yellow('\nNo valid targets available.'));
-    return false;
-  }
-  
-  // Import special abilities functions
-  const { hasSpecialAbility, applySpecialAbility } = require('../engine/specialAbilities');
-  
-  // Check if this unit can perform special attacks
-  const canPerformAntiMechAttack = attacker.type === 'infantry' && 
-                                 hasSpecialAbility(attacker, 'AC') &&
-                                 possibleTargets.some(target => 
-                                   target.type === 'mech' && 
-                                   applySpecialAbility(
-                                     attacker, 
-                                     'AC', 
-                                     'canPerformAntiMechAttack', 
-                                     [attacker, target, gameState]
-                                   )
-                                 );
-  
-  // Check if unit can perform Death From Above attack
-  const canPerformDFA = hasSpecialAbility(attacker, 'JJ') && 
-                         attacker.status.lastMoveType === 'jump' &&
-                         possibleTargets.some(target => 
-                           applySpecialAbility(
-                             attacker, 
-                             'JJ', 
-                             'canPerformDFA', 
-                             [attacker, target, gameState]
-                           )
-                         );
-  
-  // Ask what type of attack to perform
-  let attackType = 'standard';
-  
-  // Only ask if there are multiple options
-  if (canPerformAntiMechAttack || canPerformDFA) {
-    const attackChoices = [
-      { name: 'Standard Attack', value: 'standard' }
-    ];
+  try {
+    // Select attacking unit - now returns the full unit object
+    const attacker = await selectPlayerUnit();
+    if (!attacker) return false;
     
-    if (canPerformAntiMechAttack) {
-      attackChoices.push({ name: 'Anti-Mech Attack (Infantry Only)', value: 'anti-mech' });
+    // Validate the attacker has all required properties
+    if (!attacker.type || !attacker.status || !attacker.stats) {
+      console.log(chalk.red('\nError: Selected unit is invalid or missing required properties.'));
+      return false;
     }
     
-    if (canPerformDFA) {
-      attackChoices.push({ name: 'Death From Above (Jumping Units Only)', value: 'dfa' });
+    // Get all valid targets
+    const possibleTargets = Array.from(gameState.battlefield.units.values())
+      .filter(u => u.owner !== 'player' && !u.status.effects.includes('DESTROYED'));
+    
+    if (possibleTargets.length === 0) {
+      console.log(chalk.yellow('\nNo valid targets available.'));
+      return false;
     }
     
-    const attackTypeAnswers = await inquirer.prompt([
-    {
-      type: 'list',
-        name: 'attackType',
-        message: 'Select attack type:',
-        choices: attackChoices
+    // Import special abilities functions
+    const { hasSpecialAbility, applySpecialAbility } = require('../engine/specialAbilities');
+    
+    // Check if this unit can perform special attacks - with proper error handling
+    let canPerformAntiMechAttack = false;
+    try {
+      canPerformAntiMechAttack = attacker.type === 'infantry' && 
+                                hasSpecialAbility(attacker, 'AC') &&
+                                possibleTargets.some(target => 
+                                  target && target.type === 'mech' && 
+                                  applySpecialAbility(
+                                    attacker, 
+                                    'AC', 
+                                    'canPerformAntiMechAttack', 
+                                    [attacker, target, gameState]
+                                  )
+                                );
+    } catch (err) {
+      console.log(chalk.yellow('Warning: Could not check for Anti-Mech attack capability.'));
+      canPerformAntiMechAttack = false;
+    }
+    
+    // Check if unit can perform Death From Above attack - with proper error handling
+    let canPerformDFA = false;
+    try {
+      canPerformDFA = hasSpecialAbility(attacker, 'JJ') && 
+                      attacker.status && 
+                      attacker.status.lastMoveType === 'jump' &&
+                      possibleTargets.some(target => 
+                        target && applySpecialAbility(
+                          attacker, 
+                          'JJ', 
+                          'canPerformDFA', 
+                          [attacker, target, gameState]
+                        )
+                      );
+    } catch (err) {
+      console.log(chalk.yellow('Warning: Could not check for Death From Above capability.'));
+      canPerformDFA = false;
+    }
+    
+    // Ask what type of attack to perform
+    let attackType = 'standard';
+    
+    // Only ask if there are multiple options
+    if (canPerformAntiMechAttack || canPerformDFA) {
+      const attackChoices = [
+        { name: 'Standard Attack', value: 'standard' }
+      ];
+      
+      if (canPerformAntiMechAttack) {
+        attackChoices.push({ name: 'Anti-Mech Attack (Infantry Only)', value: 'anti-mech' });
+      }
+      
+      if (canPerformDFA) {
+        attackChoices.push({ name: 'Death From Above (Jumping Units Only)', value: 'dfa' });
+      }
+      
+      const attackTypeAnswers = await inquirer.prompt([
+      {
+        type: 'list',
+          name: 'attackType',
+          message: 'Select attack type:',
+          choices: attackChoices
+        }
+      ]);
+      
+      attackType = attackTypeAnswers.attackType;
+    }
+    
+    // Filter targets based on attack type
+    let validTargets = possibleTargets;
+    
+    if (attackType === 'anti-mech') {
+      validTargets = possibleTargets.filter(target => 
+        target && target.type === 'mech' && 
+        applySpecialAbility(
+          attacker, 
+          'AC', 
+          'canPerformAntiMechAttack', 
+          [attacker, target, gameState]
+        )
+      );
+      
+      if (validTargets.length === 0) {
+        console.log(chalk.yellow('\nNo valid targets for Anti-Mech attack! Targets must be adjacent Mechs.'));
+        return false;
+      }
+    } else if (attackType === 'dfa') {
+      validTargets = possibleTargets.filter(target => 
+        target && applySpecialAbility(
+          attacker, 
+          'JJ', 
+          'canPerformDFA', 
+          [attacker, target, gameState]
+        )
+      );
+      
+      if (validTargets.length === 0) {
+        console.log(chalk.yellow('\nNo valid targets for Death From Above attack! You must have jumped onto the target this turn.'));
+        return false;
+      }
+    }
+    
+    // Let the player select a target from valid targets
+    const targetChoices = validTargets.map(unit => ({
+      name: `${unit.name} (${unit.id}) at position (${unit.position.x},${unit.position.y})`,
+      value: unit.id
+    }));
+    
+    const { targetId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'targetId',
+        message: 'Select an enemy unit to attack:',
+        choices: targetChoices
       }
     ]);
     
-    attackType = attackTypeAnswers.attackType;
-  }
-  
-  // Filter targets based on attack type
-  let validTargets = possibleTargets;
-  
-  if (attackType === 'anti-mech') {
-    validTargets = possibleTargets.filter(target => 
-      target.type === 'mech' && 
-      applySpecialAbility(
-        attacker, 
-        'AC', 
-        'canPerformAntiMechAttack', 
-        [attacker, target, gameState]
-      )
-    );
+    // Now handle the attack with the selected units
+    const params = { 
+      attacker: attacker.id, // Use the unit's ID from the unit object
+      target: targetId, 
+      attackType: attackType 
+    };
     
-    if (validTargets.length === 0) {
-      console.log(chalk.yellow('\nNo valid targets for Anti-Mech attack! Targets must be adjacent Mechs.'));
+    // Call the appropriate attack handler based on the type
+    if (attackType === 'standard') {
+      await handleAttack(gameState, params);
+      return true;
+    } else if (attackType === 'anti-mech') {
+      // Call the anti-mech attack handler (if implemented)
+      console.log(chalk.yellow('Anti-Mech attack is not yet fully implemented.'));
+      return false;
+    } else if (attackType === 'dfa') {
+      // Call the Death From Above attack handler (if implemented)
+      console.log(chalk.yellow('Death From Above attack is not yet fully implemented.'));
       return false;
     }
-  } else if (attackType === 'dfa') {
-    validTargets = possibleTargets.filter(target => 
-      applySpecialAbility(
-        attacker, 
-        'JJ', 
-        'canPerformDFA', 
-        [attacker, target, gameState]
-      )
-    );
     
-    if (validTargets.length === 0) {
-      console.log(chalk.yellow('\nNo valid targets for Death From Above attack! You must have jumped onto the target this turn.'));
-      return false;
-    }
-  }
-  
-  // Let the player select a target from valid targets
-  const targetChoices = validTargets.map(unit => ({
-    name: `${unit.name} (${unit.id}) at position (${unit.position.x},${unit.position.y})`,
-    value: unit.id
-  }));
-  
-  const { targetId } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'targetId',
-      message: 'Select an enemy unit to attack:',
-      choices: targetChoices
-    }
-  ]);
-  
-  // Now handle the attack with the selected units
-  const params = { 
-    attacker: attacker.id, 
-    target: targetId, 
-    attackType: attackType 
-  };
-  
-  // Call the appropriate attack handler based on the type
-  if (attackType === 'standard') {
-    await handleAttack(gameState, params);
     return true;
-  } else if (attackType === 'anti-mech') {
-    // Call the anti-mech attack handler (if implemented)
-    console.log(chalk.yellow('Anti-Mech attack is not yet fully implemented.'));
-    return false;
-  } else if (attackType === 'dfa') {
-    // Call the Death From Above attack handler (if implemented)
-    console.log(chalk.yellow('Death From Above attack is not yet fully implemented.'));
+  } catch (error) {
+    console.log(chalk.red(`Error during attack: ${error.message}`));
     return false;
   }
-  
-  return true;
 }
 
 /**
