@@ -1887,12 +1887,8 @@ async function handleAttack(gameState, params) {
     if (target.status.effects.includes('DESTROYED')) {
       console.log(chalk.red(`${target.name} (${target.id}) has been destroyed!`));
       
-      // Check if game is over
-      const gameOverCheck = checkGameOver(gameState);
-      if (gameOverCheck.gameOver) {
-        console.log(chalk.bold.cyan(`\n===== GAME OVER =====`));
-        console.log(chalk.bold(`Winner: ${gameOverCheck.winner === 'player' ? 'Player' : 'AI'}`));
-      }
+      // Check if game is over using the new function
+      endGameIfOver(gameState);
     } else {
       console.log(`${target.name} (${target.id}) has ${target.stats.armor - target.status.damage.armor} armor and ${target.stats.structure - target.status.damage.structure} structure remaining`);
     }
@@ -2063,12 +2059,9 @@ async function handleAiCombat() {
   
   displayGameStatus(gameState);
   
-  // Check if game is over
-  const gameOverCheck = checkGameOver(gameState);
-  if (gameOverCheck.gameOver) {
-    console.log(chalk.bold.cyan(`\n===== GAME OVER =====`));
-    console.log(chalk.bold(`Winner: ${gameOverCheck.winner === 'player' ? 'Player' : 'AI'}`));
-      return;
+  // Check if game is over using the new function
+  if (endGameIfOver(gameState)) {
+    return;
   }
 }
 
@@ -2837,6 +2830,15 @@ async function startGame() {
   
   while (running) {
     try {
+      // Check if the game is over at the beginning of each loop
+      if (endGameIfOver(gameState)) {
+        // Add a special reset option to the command choices
+        commandChoices.unshift({ 
+          name: chalk.bold.green('▶ NEW GAME - Start a new game'), 
+          value: 'new game' 
+        });
+      }
+      
       // Display current game status, but don't redisplay the battlefield each time
       // The battlefield will be displayed after actions that change it
       displayGameStatus(gameState);
@@ -2928,6 +2930,24 @@ async function startGame() {
       
       // For other commands, map them to appropriate handlers
       switch (commandChoice) {
+        case 'new game':
+          // Reset the game state
+          console.log(chalk.green('Starting a new game...'));
+          gameState = createGameState();
+          
+          // Generate a new battlefield
+          const newMapTemplate = mapGenerator.getMapTemplate('GRASSLANDS', 20, 20);
+          if (newMapTemplate instanceof Map) {
+            gameState.battlefield.terrain = newMapTemplate;
+          } else {
+            gameState.battlefield.terrain = new Map();
+          }
+          gameState.battlefield.dimensions = { width: 20, height: 20 };
+          
+          // Display the new battlefield
+          displayBattlefield(gameState);
+          break;
+          
         case 'add unit':
           const { unitCategory } = await inquirer.prompt([
             {
@@ -3345,4 +3365,20 @@ function confirm(message) {
   // For now, we'll just return true
   console.log(chalk.yellow(`${message} (Y/n) [Y]`));
   return true;
+}
+
+/**
+ * End the game and display the winner
+ * @param {Object} gameState - Current game state
+ * @returns {boolean} True if game is over, false otherwise
+ */
+function endGameIfOver(gameState) {
+  const gameOverCheck = checkGameOver(gameState);
+  if (gameOverCheck.gameOver) {
+    console.log(chalk.bold.cyan(`\n===== GAME OVER =====`));
+    console.log(chalk.bold(`Winner: ${gameOverCheck.winner === 'player' ? 'Player' : 'AI'}`));
+    console.log(chalk.bold(`\nPress any key to start a new game or EXIT to quit.`));
+    return true;
+  }
+  return false;
 }

@@ -1338,17 +1338,30 @@ function processInitiative(gameState, rolls) {
  * @returns {Object} Game over status and winner
  */
 function checkGameOver(gameState) {
-  // Simple win condition: all enemy units destroyed
-  const playerUnitsDestroyed = gameState.players.get('player').units.every(unitId => {
+  // Get unit lists
+  const playerUnits = gameState.players.get('player').units;
+  const aiUnits = gameState.players.get('ai').units;
+  
+  // Check if game has started - only check for game over if there are units on both sides
+  if (playerUnits.length === 0 || aiUnits.length === 0) {
+    return { gameOver: false };
+  }
+  
+  // Check if all player units are destroyed
+  const playerUnitsDestroyed = playerUnits.every(unitId => {
     const unit = gameState.battlefield.units.get(unitId);
+    if (!unit) return true; // Consider missing units as destroyed
     return unit.status.effects.includes('DESTROYED');
   });
   
-  const aiUnitsDestroyed = gameState.players.get('ai').units.every(unitId => {
+  // Check if all AI units are destroyed
+  const aiUnitsDestroyed = aiUnits.every(unitId => {
     const unit = gameState.battlefield.units.get(unitId);
+    if (!unit) return true; // Consider missing units as destroyed
     return unit.status.effects.includes('DESTROYED');
   });
   
+  // Game is over if either side has all units destroyed
   if (playerUnitsDestroyed) {
     return { gameOver: true, winner: 'ai' };
   } else if (aiUnitsDestroyed) {
